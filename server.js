@@ -3,7 +3,15 @@
 // Import required modules
 const express = require('express');
 const bodyParser = require('body-parser');
-const { v4: uuidv4 } = require('uuid');
+require('dotenv').config();
+
+// Import custom middleware
+const logger = require('./middleware/logger');
+const auth = require('./middleware/auth');
+const { errorHandler } = require('./middleware/errorHandler');
+
+// Import routes
+const productsRouter = require('./routes/products');
 
 // Initialize Express app
 const app = express();
@@ -11,6 +19,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware setup
 app.use(bodyParser.json());
+app.use(logger);
 
 // Sample in-memory products database
 let products = [
@@ -40,27 +49,16 @@ let products = [
   }
 ];
 
-// Root route
+// Routes
 app.get('/', (req, res) => {
   res.send('Welcome to the Product API! Go to /api/products to see all products.');
 });
 
-// TODO: Implement the following routes:
-// GET /api/products - Get all products
-// GET /api/products/:id - Get a specific product
-// POST /api/products - Create a new product
-// PUT /api/products/:id - Update a product
-// DELETE /api/products/:id - Delete a product
+// Product routes
+app.use('/api/products', productsRouter);
 
-// Example route implementation for GET /api/products
-app.get('/api/products', (req, res) => {
-  res.json(products);
-});
-
-// TODO: Implement custom middleware for:
-// - Request logging
-// - Authentication
-// - Error handling
+// Error handling middleware (should be last)
+app.use(errorHandler);
 
 // Start the server
 app.listen(PORT, () => {
